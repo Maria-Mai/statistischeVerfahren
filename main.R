@@ -23,22 +23,33 @@ selectFeatures <- function(df){ #df Data Frame mit allen Einflussgroessen
   return(resultDF)
 }
 
-reducedFeatures <- selectFeatures(nir.data[,4:ncol(nir.data), drop=FALSE]) 
-for (i in 1:5) {
-  reducedFeatures <- selectFeatures(reducedFeatures)  
+repeatedSelectFeatures <- function(df, maxCount=10) {
+  reducedFeatures <- selectFeatures(df)
+  for (i in 1:maxCount) {
+    newFeatures <- selectFeatures(reducedFeatures)
+    if (ncol(newFeatures) == ncol(reducedFeatures)) {
+      return (reducedFeatures)
+    }
+    reducedFeatures <- newFeatures
+  }
+  return(reducedFeatures)
 }
 
-nir.model <- regsubsets(
+getBestLinearModel <- function(subsets, data) {
+  subsetWhich = summary(subsets)$which
+  bestId <- which.min(summary(subsets)$cp)
+  varNames <- dimnames(subsetWhich)[[2]][-1]
+  bestModel <- subsetWhich[bestId,]
+  formula <- reformulate(varNames[which(bestModel[-1])], "N", bestModel[1])
+  return(lm(formula, data))
+}
+
+reducedFeatures <- repeatedSelectFeatures(nir.data[,4:ncol(nir.data), drop=FALSE])
+nir.subsets <- regsubsets(
   y=nir.data[,2],
   x=reducedFeatures,
   nvmax=ncol(reducedFeatures)+1,
   method="backward",
   really.big = TRUE)
 
-subsetForModel <- which.min(summary(nir.model)$cp)
-subsetM <- summary(nir.model)$which
-
-sum(subsetM[32,])
-
-
-lm1 <- lm(y=nir.data[,2], x)
+nir.model <- getBestLinearModel(nir.subsets, nir.data)
