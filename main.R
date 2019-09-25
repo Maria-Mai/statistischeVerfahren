@@ -1,7 +1,5 @@
 library(leaps)
 
-nir.data <- read.csv("NIR.csv", sep = ";", header=TRUE)
-
 selectFeatures <- function(df){ #df Data Frame mit allen Einflussgroessen
   resultDF <- data.frame(matrix(ncol=0, nrow=nrow(df)))
   for(i in seq(1, ncol(df), 2)){ # Spaltenindex
@@ -35,21 +33,42 @@ repeatedSelectFeatures <- function(df, maxCount=10) {
   return(reducedFeatures)
 }
 
-getBestLinearModel <- function(subsets, data) {
-  subsetWhich = summary(subsets)$which
-  bestId <- which.min(summary(subsets)$cp)
-  varNames <- dimnames(subsetWhich)[[2]][-1]
-  bestModel <- subsetWhich[bestId,]
-  formula <- reformulate(varNames[which(bestModel[-1])], "N", bestModel[1])
+getCandidateModel <- function(subsets, data, tolerance=1.2) {
+  # Findet ein Kandidatenmodell mit einer minimalen Parameterzahl,
+  # dessen Cp-Wert sich dem p-Wert von oben nähert
+  pValue <- length(data)
+  subsetPredictors = summary(subsets)$which
+  cpValues = summary(subsets)$cp
+
+  bestIndex <- 0
+  for(i in seq(1, pValue)) {
+    currentCp <- cpValues[i]
+    if (currentCp >= pValue && currentCp <= pValue * tolerance) {
+      bestIndex  <- i
+      break
+    }
+  }
+  if (bestIndex == pValue) {
+    warning("No suitable model within the given Cp range found.")
+  }
+  cat("Using candidate model with", bestIndex, "predictors, Cp:", cpValues[bestIndex], "\n")
+
+  includedPredictors <- subsetPredictors[bestIndex,]
+  # -1: Prädiktoren ohne Intercept
+  formula <- reformulate(names(which(includedPredictors[-1])), "N", TRUE)
   return(lm(formula, data))
 }
 
-reducedFeatures <- repeatedSelectFeatures(nir.data[,4:ncol(nir.data), drop=FALSE])
+nir.data <- read.csv("NIR.csv", sep = ";", header=TRUE)
+nir.reducedData <- cbind(
+                         nir.data[, "N", drop=FALSE],
+                         repeatedSelectFeatures(nir.data[, 4:ncol(nir.data), drop=FALSE])
+)
 nir.subsets <- regsubsets(
-  y=nir.data[,2],
-  x=reducedFeatures,
-  nvmax=ncol(reducedFeatures)+1,
+  y=nir.reducedData[,"N"],
+  x=nir.reducedData[,-1],
+  nvmax=ncol(nir.reducedData[-1])+1,
   method="backward",
   really.big = TRUE)
 
-nir.model <- getBestLinearModel(nir.subsets, nir.data)
+nir.model <- getCandidateModel(nir.subsets, nir.reducedData)
