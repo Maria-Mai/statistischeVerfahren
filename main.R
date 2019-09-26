@@ -60,9 +60,12 @@ getCandidateModel <- function(subsets, data, tolerance=1.2) {
 }
 
 nir.data <- read.csv("NIR.csv", sep = ";", header=TRUE)
+preprocessedFeatures <- scale(
+                              repeatedSelectFeatures(nir.data[, 4:ncol(nir.data), drop=FALSE]),
+                              center=TRUE, scale=TRUE)
 nir.reducedData <- cbind(
                          nir.data[, "N", drop=FALSE],
-                         repeatedSelectFeatures(nir.data[, 4:ncol(nir.data), drop=FALSE])
+                         preprocessedFeatures
 )
 nir.subsets <- regsubsets(
   y=nir.reducedData[,"N"],
