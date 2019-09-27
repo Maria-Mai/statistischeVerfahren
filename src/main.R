@@ -59,7 +59,7 @@ getCandidateModel <- function(subsets, data, tolerance=1.2) {
   return(lm(formula, data))
 }
 
-nir.data <- read.csv("NIR.csv", sep = ";", header=TRUE)
+nir.data <- read.csv("../NIR.csv", sep = ";", header=TRUE)
 preprocessedFeatures <- scale(
                               repeatedSelectFeatures(nir.data[, 4:ncol(nir.data), drop=FALSE]),
                               center=TRUE, scale=TRUE)
