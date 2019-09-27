@@ -33,7 +33,7 @@ repeatedSelectFeatures <- function(df, maxCount=10) {
   return(reducedFeatures)
 }
 
-getCandidateModel <- function(subsets, data, tolerance=1.2) {
+getCandidateModel <- function(subsets, data, tolerance=1.2, indexOnly=FALSE) {
   # Findet ein Kandidatenmodell mit einer minimalen Parameterzahl,
   # dessen Cp-Wert sich dem p-Wert von oben nähert
   pValue <- length(data)
@@ -48,10 +48,11 @@ getCandidateModel <- function(subsets, data, tolerance=1.2) {
       break
     }
   }
-  if (bestIndex == pValue) {
+  if (bestIndex + 1 == pValue) {
     warning("No suitable model within the given Cp range found.")
   }
   cat("Using candidate model with", bestIndex, "predictors, Cp:", cpValues[bestIndex], "\n")
+  if (indexOnly) return(bestIndex)
 
   includedPredictors <- subsetPredictors[bestIndex,]
   # -1: Prädiktoren ohne Intercept
