@@ -1,14 +1,14 @@
 rss <- function(model)
     sum(residuals(model)^2)
 
-sigma2Tilde <- function(model, modelSize, sampleSize)
-    rss(model) / (sampleSize - modelSize)
+sigma2Tilde <- function(model, sampleSize)
+    rss(model) / (sampleSize - model$rank)
 
-trueSPSE <- function(model, modelSize, sampleSize)
-    (sampleSize + modelSize) * sigma2Tilde(model, modelSize, sampleSize)
+trueSPSE <- function(model, sampleSize)
+    (sampleSize + model$rank) * sigma2Tilde(model, model$rank, sampleSize)
 
-trueSPSE2 <- function(model, modelSize, fullModel, sampleSize, fullModelSize)
-    rss(model) + 2 * sigma2Tilde(fullModel, fullModelSize, sampleSize) * modelSize
+trueSPSE2 <- function(model, fullModel, sampleSize)
+    rss(model) + 2 * sigma2Tilde(fullModel, sampleSize) * fullModel$rank
 
-estimatedSPSE <- function(cp, fullModel, fullModelSize, sampleSize)
-    cp * sigma_2_tilde_full + sampleSize * sigma2Tilde(fullModel, fullModelSize, sampleSize)
+estimatedSPSE <- function(cp, fullModel, sampleSize)
+    cp * sigma2Tilde(fullModel, sampleSize) + sampleSize * sigma2Tilde(fullModel, sampleSize)

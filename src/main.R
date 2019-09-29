@@ -60,11 +60,11 @@ getCandidateModel <- function(subsets, data, tolerance=1.2, indexOnly=FALSE) {
   return(lm(formula, data))
 }
 
-nir.data <- read.csv("../NIR.csv", sep = ";", header=TRUE)
+nir.data.raw <- read.csv("../NIR.csv", sep = ";", header=TRUE)
 preprocessedFeatures <- scale(
                               repeatedSelectFeatures(nir.data[, 4:ncol(nir.data), drop=FALSE]),
                               center=TRUE, scale=TRUE)
-nir.reducedData <- cbind(
+nir.data.processed <- cbind(
                          nir.data[, "N", drop=FALSE],
                          preprocessedFeatures
 )
@@ -75,4 +75,5 @@ nir.subsets <- regsubsets(
   method="backward",
   really.big = TRUE)
 
-nir.model <- getCandidateModel(nir.subsets, nir.reducedData)
+nir.model.candidate <- getCandidateModel(nir.subsets, nir.reducedData)
+nir.model.full <- lm(reformulate(names(nir.data.processed[-1]), "N"), nir.data.processed)
