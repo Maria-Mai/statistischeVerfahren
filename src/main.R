@@ -12,7 +12,7 @@ selectFeatures <- function(df){ #df Data Frame mit allen Einflussgroessen
     
     difference <- abs(sum((df[i] - df[i+1])) / nrow(df))
     
-    if(difference >= 0.001){
+    if(difference >= 0.00075){
       resultDF <- cbind(resultDF, df[,i:(i+1)])
       
     }
@@ -81,8 +81,8 @@ preprocessedFeatures <- scale(
                               center=TRUE, scale=TRUE)
 nir.data.processed <- cbind(
                          nir.data.raw[, "N", drop=FALSE],
-                         preprocessedFeatures
-)
+                         preprocessedFeatures)
+cat("Number of parameters: ", ncol(nir.data.processed), "\n")
 nir.subsets <- regsubsets(
   y=nir.data.processed[,"N"],
   x=nir.data.processed[,-1],
@@ -111,4 +111,3 @@ for (j in SAMPLE_SIZES) {
 }
 true_spse <- trueSPSE(nir.model.candidate, nir.model.full, nrow(nir.data.processed))
 cat("True SPSE: ", true_spse, "\n")
-#cat("True SPSE 2: ", trueSPSE2(nir.model.candidate, nir.model.full, 533), "\n")
