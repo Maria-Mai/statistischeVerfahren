@@ -28,7 +28,6 @@ simulation <- function(model, data, sampleSize, repetitions=1000) {
 	  method="backward",
 	  really.big=TRUE)
 
-	print(summary(subsets)$cp)
 	bestIndex <- which.min(summary(subsets)$cp)
 	bestCp <- summary(subsets)$cp[bestIndex]
 	bestR2 <- summary(subsets)$rsq[bestIndex]
